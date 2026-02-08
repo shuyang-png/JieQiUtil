@@ -12,7 +12,7 @@ import java.util.List;
 
 public class JieQiUtil {
     public static HashMap<String, JieQiInfo> jieqiAndLongitude = new HashMap<String,JieQiInfo>();
-    // 预设：冬至前 -> 夏至后的节气列表（不含夏至，含冬至）
+    // 预设：冬至前 -> 夏至后的节气列表（不含夏至，含冬至）1
     private static final List<String> WINTER_TO_SUMMER;
     // 夏至后 -> 冬至前的节气列表（含夏至，不含冬至）
     private static final List<String> SUMMER_TO_WINTER;
