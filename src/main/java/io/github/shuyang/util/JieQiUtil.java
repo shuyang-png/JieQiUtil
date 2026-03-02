@@ -1,6 +1,7 @@
 package io.github.shuyang.util;
 
-import io.github.shuyang.JieQiInfo;
+import io.github.shuyang.entity.JieQiInfo;
+import io.github.shuyang.entity.SolarCalculationEngine;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,9 +14,11 @@ import java.util.List;
 public class JieQiUtil {
     public static HashMap<String, JieQiInfo> jieqiAndLongitude = new HashMap<String,JieQiInfo>();
     // 预设：冬至前 -> 夏至后的节气列表（不含夏至，含冬至）1
-    private static final List<String> WINTER_TO_SUMMER;
+    public static final List<String> WINTER_TO_SUMMER;
     // 夏至后 -> 冬至前的节气列表（含夏至，不含冬至）
-    private static final List<String> SUMMER_TO_WINTER;
+    public static final List<String> SUMMER_TO_WINTER;
+    public static String[][] JIEQINAME = new String[12][2];
+    public static final HashMap<String,Integer> jieQi2month = new HashMap<String, Integer>();
     static {
         //月 最早 最晚
         jieqiAndLongitude.put("立春",new JieQiInfo(315.0,new int[]{2,3,6}));
@@ -42,8 +45,55 @@ public class JieQiUtil {
         jieqiAndLongitude.put("冬至",new JieQiInfo(270.0,new int[]{12,21,24}));
         jieqiAndLongitude.put("小寒",new JieQiInfo(285.0,new int[]{1,5,8}));
         jieqiAndLongitude.put("大寒",new JieQiInfo(300.0,new int[]{1,20,23}));
-    }
-    static {
+        JIEQINAME[0][0] = "小寒";
+        JIEQINAME[0][1] = "大寒";
+        JIEQINAME[1][0] = "立春";
+        JIEQINAME[1][1] = "雨水";
+        JIEQINAME[2][0] = "惊蛰";
+        JIEQINAME[2][1] = "春分";
+        JIEQINAME[3][0] = "清明";
+        JIEQINAME[3][1] = "谷雨";
+        JIEQINAME[4][0] = "立夏";
+        JIEQINAME[4][1] = "小满";
+        JIEQINAME[5][0] = "芒种";
+        JIEQINAME[5][1] = "夏至";
+        JIEQINAME[6][0] = "小暑";
+        JIEQINAME[6][1] = "大暑";
+        JIEQINAME[7][0] = "立秋";
+        JIEQINAME[7][1] = "处暑";
+        JIEQINAME[8][0] = "白露";
+        JIEQINAME[8][1] = "秋分";
+        JIEQINAME[9][0] = "寒露";
+        JIEQINAME[9][1] = "霜降";
+        JIEQINAME[10][0] = "立冬";
+        JIEQINAME[10][1] = "小雪";
+        JIEQINAME[11][0] = "大雪";
+        JIEQINAME[11][1] = "冬至";
+        jieQi2month.put("立春",3);
+        jieQi2month.put("雨水",3);
+        jieQi2month.put("惊蛰",4);
+        jieQi2month.put("春分",4);
+        jieQi2month.put("清明",5);
+        jieQi2month.put("谷雨",5);
+        jieQi2month.put("立夏",6);
+        jieQi2month.put("小满",6);
+        jieQi2month.put("芒种",7);
+        jieQi2month.put("夏至",7);
+        jieQi2month.put("小暑",8);
+        jieQi2month.put("大暑",8);
+        jieQi2month.put("立秋",9);
+        jieQi2month.put("处暑",9);
+        jieQi2month.put("白露",10);
+        jieQi2month.put("秋分",10);
+        jieQi2month.put("寒露",11);
+        jieQi2month.put("霜降",11);
+        jieQi2month.put("立冬",12);
+        jieQi2month.put("小雪",12);
+        jieQi2month.put("大雪",1);
+        jieQi2month.put("冬至",1);
+        jieQi2month.put("小寒",2);
+        jieQi2month.put("大寒",2);
+
         // 初始化冬至后夏至前的节气列表
         WINTER_TO_SUMMER = new ArrayList<>();
         WINTER_TO_SUMMER.add("冬至");
@@ -125,7 +175,8 @@ public class JieQiUtil {
         long startSecs = startSearch.atZone(ZoneOffset.UTC).toEpochSecond();
         long endSecs = endSearch.atZone(ZoneOffset.UTC).toEpochSecond();
 
-        long targetSecs = binarySearchForSolarLongitude(startSecs, endSecs, TARGET_LONGITUDE);
+        // 调用函数
+        long targetSecs = SolarCalculationEngine.binarySearchForSolarLongitude(startSecs, endSecs, TARGET_LONGITUDE);
 
         // 将找到的UTC时间戳转换回 LocalDateTime (UTC)
         LocalDateTime utcTime = Instant.ofEpochSecond(targetSecs).atZone(ZoneOffset.UTC).toLocalDateTime();
@@ -133,84 +184,5 @@ public class JieQiUtil {
         // 转换为北京时间 (UTC+8)
         return utcTime.plusHours(8);
     }
-    /**
-     * 使用二分搜索查找太阳黄经等于目标值的时刻
-     * @param startSecs 秒级时间
-     * @param endSecs   秒级时间
-     * @param targetLongitude 对应的太阳黄经（度）
-     * @return 立春的日期时间（北京时间）
-     */
-    private static long binarySearchForSolarLongitude(long startSecs, long endSecs, double targetLongitude) {
-        long left = startSecs;
-        long right = endSecs;
-
-        // 设置精度为 60 秒（1分钟）
-        while (right - left > 60) {
-            long mid = left + (right - left) / 2;
-
-            double longitude = calculateAccurateSolarLongitude(mid);
-
-            if (longitude < targetLongitude) {
-                left = mid + 1;
-            } else {
-                right = mid;
-            }
-        }
-
-        // 返回最接近目标黄经的时间点
-        long candidate1 = left;
-        long candidate2 = right;
-
-        double lon1 = calculateAccurateSolarLongitude(candidate1);
-        double lon2 = calculateAccurateSolarLongitude(candidate2);
-
-        // 选择黄经更接近目标的那个
-        if (Math.abs(lon1 - targetLongitude) <= Math.abs(lon2 - targetLongitude)) {
-            return candidate1;
-        } else {
-            return candidate2;
-        }
-    }
-
-    /**
-     * 计算给定 UTC 时间戳的太阳黄经（度）
-     * 使用更精确的算法，参考 Astronomical Almanac 和 Meeus 的方法
-     * 该算法考虑了更多的摄动项，精度更高。
-     * @param utcTimestamp 目标节气秒级时间
-     */
-    private static double calculateAccurateSolarLongitude(long utcTimestamp) {
-        // 将时间戳转换为儒略世纪 T (J2000.0 起算)
-        double jd = 2440587.5 + (double) utcTimestamp / 86400.0; // 秒转儒略日
-        double t = (jd - 2451545.0) / 36525.0; // 儒略世纪
-
-        // 太阳几何平黄经 L0 (度)
-        double l0 = 280.46646 + 36000.76983 * t + 0.0003032 * t * t;
-        l0 = l0 % 360.0;
-        if (l0 < 0) l0 += 360.0;
-
-        // 太阳平近点角 M (度)
-        double m = 357.52911 + 35999.05029 * t - 0.0001537 * t * t;
-        m = m % 360.0;
-        if (m < 0) m += 360.0;
-        double mRad = Math.toRadians(m);
-
-        // 中心差 C (度) - 用于修正地心视黄经
-        double c = (1.914602 - 0.004817 * t - 0.000014 * t * t) * Math.sin(mRad);
-        c += (0.019993 - 0.000101 * t) * Math.sin(2 * mRad);
-        c += 0.000289 * Math.sin(3 * mRad);
-
-        // 太阳视黄经 L (度)
-        double l = l0 + c;
-
-        // 章动和光行差修正（对节气计算影响较小，此处省略以简化，但核心算法更精确）
-        // 地球轨道倾角 epsilon (度) - J2000.0 标准值
-        double epsilon = 23.43929111;
-
-        // 太阳真黄经 lambda (度) - 这里我们直接用视黄经 L 作为太阳在黄道上的位置近似
-        // 对于节气计算（关注黄经），L 即可作为太阳黄经
-        double solarLongitude = l % 360.0;
-        if (solarLongitude < 0) solarLongitude += 360.0;
-
-        return solarLongitude;
-    }
 }
+

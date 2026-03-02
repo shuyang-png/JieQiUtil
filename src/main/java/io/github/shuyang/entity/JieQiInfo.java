@@ -1,8 +1,8 @@
-package io.github.shuyang;
+package io.github.shuyang.entity;
 
 public class JieQiInfo {
-    private double longitude;
-    private int[] date;
+    private final double longitude;
+    private final int[] date;
     public JieQiInfo(double longitude,int[] date){
         this.longitude = longitude;
         this.date = date;
