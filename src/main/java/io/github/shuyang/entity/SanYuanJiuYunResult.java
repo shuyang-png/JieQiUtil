@@ -16,11 +16,14 @@ public class SanYuanJiuYunResult {
     // Getters
     public int getYear() { return year; }
     public String getYuan() { return yuan; }
-    public int getYun() { return yun; }
+    public int getYun4Int() { return yun; }
     public int getYunInCurrentYuan() { return yunInCurrentYuan; }
 
     @Override
     public String toString() {
         return String.format("年份: %d, 元: %s, 运 (全局): %d, 运 (元内): %d", year, yuan, yun, yunInCurrentYuan);
+    }
+    public String getYun(){
+        return String.format("元运");
     }
 }
