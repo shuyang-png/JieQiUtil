@@ -1,11 +1,25 @@
 package io.github.shuyang.entity;
 
+import java.util.Objects;
+
+/**
+ * 三元九运计算结果。
+ * <p>
+ * 包含年份对应的元（上元/中元/下元）、全局运数（1-9）和元内运数（1-3）。
+ * </p>
+ */
 public class SanYuanJiuYunResult {
     private final int year;
-    private final String yuan; // 元
-    private final int yun;     // 全局运数 (1-9)
-    private final int yunInCurrentYuan; // 元内运数 (1-3)
+    private final String yuan;
+    private final int yun;
+    private final int yunInCurrentYuan;
 
+    /**
+     * @param year            公历年份
+     * @param yuan            元名称：上元/中元/下元
+     * @param yun             全局运数 (1-9)
+     * @param yunInCurrentYuan 当前元内的运序号 (1-3)
+     */
     public SanYuanJiuYunResult(int year, String yuan, int yun, int yunInCurrentYuan) {
         this.year = year;
         this.yuan = yuan;
@@ -13,17 +27,28 @@ public class SanYuanJiuYunResult {
         this.yunInCurrentYuan = yunInCurrentYuan;
     }
 
-    // Getters
     public int getYear() { return year; }
     public String getYuan() { return yuan; }
-    public int getYun4Int() { return yun; }
+    public int getYun() { return yun; }
     public int getYunInCurrentYuan() { return yunInCurrentYuan; }
 
     @Override
     public String toString() {
-        return String.format("年份: %d, 元: %s, 运 (全局): %d, 运 (元内): %d", year, yuan, yun, yunInCurrentYuan);
+        return String.format("年份: %d, 元: %s, 运: %d, 元内运: %d", year, yuan, yun, yunInCurrentYuan);
     }
-    public String getYun(){
-        return String.format("元运");
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SanYuanJiuYunResult)) return false;
+        SanYuanJiuYunResult that = (SanYuanJiuYunResult) o;
+        return year == that.year && yun == that.yun
+            && yunInCurrentYuan == that.yunInCurrentYuan
+            && Objects.equals(yuan, that.yuan);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(year, yuan, yun, yunInCurrentYuan);
     }
 }
