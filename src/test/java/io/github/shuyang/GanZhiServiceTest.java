@@ -161,7 +161,7 @@ public class GanZhiServiceTest {
     @Test
     @DisplayName("完整四柱：2026-06-15 12:00")
     void testCalculateGanZhi_FullSet() {
-        GanZhi ganZhi = service.calculateGanZhi(1978, 12, 27, 12, 0);
+        GanZhi ganZhi = service.calculateGanZhi(2026, 6, 15, 12, 0);
         assertNotNull(ganZhi);
         assertNotNull(ganZhi.getGanZhiYear());
         assertNotNull(ganZhi.getGanZhiMonth());

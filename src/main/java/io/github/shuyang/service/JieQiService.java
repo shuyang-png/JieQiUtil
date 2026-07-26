@@ -58,6 +58,30 @@ public class JieQiService {
     }
 
     /**
+     * 使用高精度 VSOP87 引擎（{@link io.github.shuyang.util.SolarCalculationEngine}）创建服务实例。
+     * <p>
+     * 相比默认引擎（{@link SolarCalculationEngine}），额外包含章动、光行差、FK5 参考系修正，
+     * 节气时刻精度从约 1 分钟提升到约 1 秒。
+     * </p>
+     *
+     * @return 使用高精度算法引擎的服务实例
+     */
+    public static JieQiService createHighPrecision() {
+        return new JieQiService(new SolarCalculator() {
+            @Override
+            public long binarySearchForSolarLongitude(long startSecs, long endSecs, double targetLongitude) {
+                return io.github.shuyang.util.SolarCalculationEngine.binarySearchForSolarLongitude(
+                    startSecs, endSecs, targetLongitude);
+            }
+
+            @Override
+            public double calculateAccurateSolarLongitude(long utcTimestamp) {
+                return io.github.shuyang.util.SolarCalculationEngine.apparentSolarLongitude(utcTimestamp);
+            }
+        });
+    }
+
+    /**
      * 获取指定年份某个节气的精确时间（北京时间）。
      *
      * @param year      公历年份
